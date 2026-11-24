@@ -4,6 +4,7 @@ import express from "express";
 import pg from "pg";
 import crypto from "node:crypto";
 import { registerTicketChanges } from "./ticket-changes.mjs";
+import { registerAdmin } from "./admin.mjs";
 
 // PostgreSQL TIMESTAMP WITHOUT TIME ZONE: giu nguyen chuoi ngay-gio tai VN.
 pg.types.setTypeParser(1114, (value) => value);
@@ -586,69 +587,7 @@ app.get(
   }),
 );
 registerTicketChanges(app, { pool, wrap, bookingError, randId, heldSeats, bookingSeatKey });
-app.get(
-  "/api/assignments",
-  wrap(async (req, res) => {
-    const trainId = String(req.query.trainId || "");
-    const { rows } = await pool.query(
-      `SELECT p.cccd AS "cccd",p.machuyentau AS "trainId",p.mavaitro AS "roleId",v.tenvaitro AS "roleName",(n.ho||' '||COALESCE(n.tengiua||' ','')||n.ten) AS "employeeName" FROM public.phancongphucvu p JOIN public.nguoidung n ON n.cccd=p.cccd JOIN public.vaitronhanvien v ON v.mavaitro=p.mavaitro WHERE ($1='' OR p.machuyentau=$1) ORDER BY p.machuyentau,p.cccd`,
-      [trainId],
-    );
-    res.json({ source: "postgresql", assignments: rows });
-  }),
-);
-app.post(
-  "/api/assignments",
-  wrap(async (req, res) => {
-    const { cccd, trainId, roleId } = req.body;
-    await pool.query(
-      "CALL public.sp_them_phan_cong($1::char(12),$2::varchar(30),$3::varchar(20))",
-      [cccd, trainId, roleId],
-    );
-    res.status(201).json({ ok: true, procedure: "sp_them_phan_cong" });
-  }),
-);
-app.put(
-  "/api/assignments",
-  wrap(async (req, res) => {
-    const { oldCccd, newCccd, trainId, roleId } = req.body;
-    await pool.query(
-      "CALL public.sp_sua_phan_cong($1::char(12),$2::varchar(30),$3::char(12),$4::varchar(20))",
-      [oldCccd, trainId, newCccd, roleId],
-    );
-    res.json({ ok: true, procedure: "sp_sua_phan_cong" });
-  }),
-);
-app.delete(
-  "/api/assignments",
-  wrap(async (req, res) => {
-    const { cccd, trainId } = req.body;
-    await pool.query("CALL public.sp_xoa_phan_cong($1::char(12),$2::varchar(30))", [cccd, trainId]);
-    res.json({ ok: true, procedure: "sp_xoa_phan_cong" });
-  }),
-);
-app.get(
-  "/api/schedule",
-  wrap(async (req, res) => {
-    const { rows } = await pool.query(
-      `SELECT g.machuyentau AS "trainId",g.thutuga AS "seq",n.tennhaga AS "station",to_char(g.thoigiandendukien,'YYYY-MM-DD HH24:MI:SS') AS "arrival",to_char(g.thoigiandidukien,'YYYY-MM-DD HH24:MI:SS') AS "departure" FROM public.gatrongchuyen g JOIN public.nhaga n ON n.manhaga=g.manhaga WHERE g.machuyentau=$1 ORDER BY g.thutuga`,
-      [req.query.trainId],
-    );
-    res.json({ source: "postgresql", schedule: rows });
-  }),
-);
-app.patch(
-  "/api/schedule",
-  wrap(async (req, res) => {
-    const { trainId, seq, arrival, departure } = req.body;
-    const { rows } = await pool.query(
-      `UPDATE public.gatrongchuyen SET thoigiandendukien=$3::timestamp,thoigiandidukien=$4::timestamp WHERE machuyentau=$1 AND thutuga=$2 RETURNING machuyentau,thutuga,thoigiandendukien,thoigiandidukien`,
-      [trainId, seq, arrival || null, departure || null],
-    );
-    if (!rows.length) return res.status(404).json({ error: "Khong tim thay ga trong chuyen" });
-    res.json({ updated: rows[0], trigger: "trg_gtc_kiem_tra_lien_tuc_thoi_gian" });
-  }),
-);
+registerAdmin(app, { pool, wrap, bookingError });
 app.use("/api", (_req, res) => res.status(404).json({ error: "API khong ton tai" }));
 // Kiem tra ten CSDL truoc khi mo cong API, tranh ghi nham vao btl_tauhoa cu.
 async function startServer() {
