@@ -1,0 +1,18 @@
+{
+  "name": "tauviet-postgres-fullstack",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Figma Make UI with PostgreSQL real data API for btl_tauhoa_meaningfulData",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently --kill-others-on-fail --names API,CLIENT --prefix-colors blue,green \"npm run dev --workspace tauviet-pg-server\" \"npm run dev --workspace tauviet-figma-client\"",
+    "build": "npm run build --workspace tauviet-figma-client",
+    "typecheck": "npm run typecheck --workspace tauviet-figma-client"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
