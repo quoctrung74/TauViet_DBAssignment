@@ -18,12 +18,42 @@ Trình duyệt
 
 ```text
 TauViet_MeaningfulData/
-├── client/    # Giao diện, các bước đặt vé và màn hình đổi/trả
-├── server/    # REST API, kết nối PostgreSQL và xử lý nghiệp vụ
-├── sql/       # Lược đồ, dữ liệu mẫu, ràng buộc, procedure, function và trigger
-├── docs/      # Tài liệu kiểm thử PostgreSQL
-├── package.json
-└── package-lock.json
+├── package.json                 # Khai báo hai workspace và lệnh chạy chung
+├── package-lock.json            # Phiên bản dependency để npm ci cài lại
+├── .gitignore                   # Bỏ qua .env, node_modules, dist và log
+├── README.md                    # Cài đặt, nạp CSDL, chạy và kiểm tra nhanh
+│
+├── client/
+│   ├── index.html               # Trang HTML chứa <div id="root">
+│   ├── package.json             # Lệnh dev, build, preview, typecheck, format
+│   ├── vite.config.ts           # Plugin React, Tailwind và cổng frontend
+│   ├── tsconfig.json            # Quy tắc kiểm tra kiểu TypeScript
+│   ├── .env.example             # Mẫu cấu hình VITE_API_URL
+│   ├── README.md                # Hướng dẫn riêng cho frontend
+│   ├── public/                  # Favicon được phục vụ trực tiếp
+│   ├── reference/               # Bản xuất Figma Make và ảnh tham khảo
+│   └── src/
+│       ├── main.tsx             # Gắn React vào HTML
+│       ├── App.tsx              # Điều hướng và trạng thái toàn luồng đặt vé
+│       ├── index.css           # Font, màu, hiệu ứng và quy tắc in
+│       ├── vite-env.d.ts       # Khai báo kiểu do Vite cung cấp
+│       ├── assets/             # Ảnh dùng trong giao diện
+│       ├── components/         # Thành phần giao diện dùng lại
+│       ├── lib/                # API, kiểu dữ liệu và hàm tiện ích
+│       ├── steps/              # Các bước trong luồng đặt vé
+│       └── views/              # Đơn của tôi, đổi/trả, quản trị
+│
+├── server/
+│   ├── package.json             # Dependency và lệnh chạy backend
+│   ├── .env.example             # Mẫu cấu hình kết nối, cổng và CORS
+│   └── src/
+│       ├── index.mjs            # Khởi động API, tra chuyến, giữ chỗ, đặt vé
+│       ├── admin.mjs            # Phân công phục vụ và điều chỉnh lịch ga
+│       └── ticket-changes.mjs   # Báo phí và xác nhận đổi/trả vé
+│
+├── sql/                         # 12 script tạo dữ liệu và nghiệp vụ CSDL
+└── docs/
+    └── KIEM_THU_POSTGRESQL.md    # Ca kiểm tra dữ liệu, API và trigger
 ```
 
 ## 1. Chuẩn bị môi trường
